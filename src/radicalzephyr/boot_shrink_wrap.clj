@@ -6,8 +6,8 @@
             [clojure.java.io :as io]))
 
 (defonce bin-template
-  "#!/bin/sh
-   exec boot %s\n")
+  (str "#!/bin/sh\n"
+       "exec boot %s\n"))
 
 (defn- remove-boot-prefix [cmd]
   (let [idx (.indexOf cmd (int \space))]
