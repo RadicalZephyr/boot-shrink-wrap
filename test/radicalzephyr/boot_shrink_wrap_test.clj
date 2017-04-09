@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [radicalzephyr.boot-shrink-wrap :refer :all]))
 
-(deftest pattern-test
+(deftest shrink-wrap-pattern-test
   (testing "non-matching invocations"
     (is (= nil
            (re-find shrink-wrap-pattern
@@ -84,3 +84,12 @@
       (is (= ["shrink-wrap -p bird --name things" " --name things"]
              (re-find shrink-wrap-pattern
                       "shrink-wrap -p bird --name things"))))))
+
+(deftest next-task-name-pattern-test
+  (testing "gets just the name of the task directly following shrink-wrap"
+    (is (= ["shrink-wrap -p bird --name things target" " --name things" "target"]
+           (re-find next-task-name-pattern
+                    "shrink-wrap -p bird --name things target")))
+    (is (= ["shrink-wrap -p bird --name things foobar" " --name things" "foobar"]
+           (re-find next-task-name-pattern
+                    "shrink-wrap -p bird --name things foobar")))))

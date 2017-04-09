@@ -2,7 +2,8 @@
   {:boot/export-tasks true}
   (:require [boot.core :as core]
             [boot.util  :as util]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.java.io :as io]))
 
 (defonce bin-template
   "#!/bin/sh
@@ -12,11 +13,22 @@
   (let [idx (.indexOf cmd (int \space))]
     (.substring cmd (inc idx))))
 
-(defonce shrink-wrap-pattern
-  #"shrink-wrap( +--?[np]a?[^- ]* +[^- ]+)* *")
+(def base-pattern
+  "shrink-wrap( +--?[np]a?[^- ]* +[^- ]+)* *")
+
+(def shrink-wrap-pattern
+  (re-pattern base-pattern))
+
+(def next-task-name-pattern
+  (re-pattern (str base-pattern "([^ ]+)")))
+
+(defn- default-name [cmd]
+  (if-let [match (re-find next-task-name-pattern cmd)]
+    (nth match 2)
+    "boot.out"))
 
 (defn- remove-shrink-wrap [cmd]
-  (str/replace cmd shrink-wrap-pattern))
+  (str/replace cmd shrink-wrap-pattern ""))
 
 (defn- clean-up [cmd]
   (-> cmd
@@ -33,11 +45,9 @@
     shrink-wrap {:path \"/home/me/.local/bin\"}"
   [n name    NAME str "The name of the script file"
    p path    PATH str "Path that the script file will be written to"]
-  (fn [_next]
-    (fn [_fs]
-      (let [command-line (System/getProperty "sun.java.command")
-            script (format bin-template (clean-up command-line))
-            ]
-
-        )
-      )))
+  (let [command-line (System/getProperty "sun.java.command")
+        name (or name (default-name command-line))
+        outfile (io/file path name)
+        script (format bin-template (clean-up command-line))]
+    (spit outfile script)
+    (constantly (constantly nil))))

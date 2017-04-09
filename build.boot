@@ -20,4 +20,5 @@
   []
   (comp (pom) (jar) (install)))
 
-(require '[adzerk.boot-test :refer [test]])
+(require '[adzerk.boot-test :refer [test]]
+         '[radicalzephyr.boot-shrink-wrap :refer [shrink-wrap]])
