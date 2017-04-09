@@ -3,7 +3,10 @@
   (:require [boot.core :as core]
             [boot.util  :as util]
             [clojure.string :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:import
+   (java.nio.file Files)
+   (java.nio.file.attribute PosixFilePermission)))
 
 (defonce bin-template
   (str "#!/bin/sh\n"
@@ -50,4 +53,13 @@
         outfile (io/file path name)
         script (format bin-template (clean-up command-line))]
     (spit outfile script)
+    (Files/setPosixFilePermissions (.toPath outfile)
+                                   #{PosixFilePermission/OWNER_READ
+                                     PosixFilePermission/OWNER_WRITE
+                                     PosixFilePermission/OWNER_EXECUTE
+                                     PosixFilePermission/GROUP_READ
+                                     PosixFilePermission/GROUP_EXECUTE
+                                     PosixFilePermission/OTHERS_READ
+                                     PosixFilePermission/OTHERS_EXECUTE})
+
     (constantly (constantly nil))))
